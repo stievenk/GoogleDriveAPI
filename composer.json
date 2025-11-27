@@ -1,0 +1,21 @@
+{
+    "name": "koyabu/googledriveapi",
+    "description": "Google Drive API Client",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Koyabu\\Googledriveapi\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Stieven Kalengkian",
+            "email": "stieven.kalengkian@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "google/apiclient": "^2.0"
+    }
+}

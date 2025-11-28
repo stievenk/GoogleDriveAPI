@@ -164,6 +164,27 @@ class GoogleDriveClient
         return $destination;
     }
 
+    // Remove File/Folder
+    public function delete(string $fileId)
+    {
+        if (!$this->ensureAccessTokenAvailable()) return false;
+
+        try {
+            // Move to Trash (default)
+            $this->service->files->delete($fileId);
+
+            return [
+                'success' => true,
+                'message' => "File or folder deleted: {$fileId}"
+            ];
+
+        } catch (\Exception $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
+
+
     // Create Share Link (Permission)
     public function createShareLink(string $fileId, string $role = 'reader', string $type = 'anyone')
     {
@@ -299,7 +320,45 @@ class GoogleDriveClient
         }
     }
 
+    public function listSharedWithMe(int $pageSize = 100)
+    {
+        if (!$this->ensureAccessTokenAvailable()) return false;
 
+        try {
+            $results = $this->service->files->listFiles([
+                'q'      => 'sharedWithMe = true',
+                'fields' => 'files(id, name, mimeType, owners, sharedWithMeTime, permissions, iconLink, thumbnailLink)',
+                'pageSize' => $pageSize
+            ]);
+
+            $files = $results->getFiles();
+
+            $clean = [];
+
+            foreach ($files as $f) {
+                $clean[] = [
+                    'id'                => $f->id,
+                    'name'              => $f->name,
+                    'mimeType'          => $f->mimeType,
+                    'owner'             => isset($f->owners[0]['emailAddress']) ? $f->owners[0]['emailAddress'] : null,
+                    'sharedWithMeTime'  => $f->sharedWithMeTime,
+                    'iconLink'          => $f->iconLink,
+                    'thumbnailLink'     => $f->thumbnailLink,
+                    'permissions'       => $f->permissions,
+                    'parents'           => $f->parents,
+                    'webContentLink'    => $f->webContentLink,
+                    'webViewLink'       => $f->webViewLink,
+                    'size'              => $f->size
+                ];
+            }
+
+            return $clean;
+
+        } catch (\Exception $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
 
 }
 ?>

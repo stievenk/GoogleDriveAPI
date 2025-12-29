@@ -360,5 +360,48 @@ class GoogleDriveClient
         }
     }
 
+        /**
+     * Get Google Drive storage quota
+     *
+     * @return array|false
+     * [
+     *   'limit' => int|null,
+     *   'used'  => int,
+     *   'free'  => int|null,
+     *   'usageInDrive' => int,
+     *   'usageInDriveTrash' => int
+     * ]
+     */
+    public function getStorageQuota()
+    {
+        if (!$this->ensureAccessTokenAvailable()) return false;
+
+        try {
+            $about = $this->service->about->get([
+                'fields' => 'storageQuota'
+            ]);
+
+            $quota = $about->getStorageQuota();
+
+            $limit = $quota->getLimit(); // bisa null (unlimited)
+            $used  = $quota->getUsage();
+            $usageInDrive = $quota->getUsageInDrive();
+            $usageInDriveTrash = $quota->getUsageInDriveTrash();
+
+            return [
+                'limit' => $limit ? (int)$limit : null,
+                'used'  => (int)$used,
+                'free'  => $limit ? ((int)$limit - (int)$used) : null,
+                'usageInDrive' => (int)$usageInDrive,
+                'usageInDriveTrash' => (int)$usageInDriveTrash
+            ];
+
+        } catch (\Google\Service\Exception $e) {
+            $this->lastError = $e->getMessage();
+            return false;
+        }
+    }
+
+
 }
 ?>
